@@ -1,0 +1,3 @@
+bootloader目录：引导程序，接收无线蓝牙升级的app程序
+app；应用程序
+testapp：测试bootloader使用
