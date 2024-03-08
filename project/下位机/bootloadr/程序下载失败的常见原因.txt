@@ -1,0 +1,6 @@
+1. bootloader里面printf调试用的串口和下载程序用的串口是同一个串口，却没有关闭调试输出 (PRINTF_ENABLE)
+2. bootloader里面软件计算CRC的时间过长 (CRC_CHECK_ENABLE)
+3. 从bootloader跳转到子程序后, 程序不能马上响应串口的0xabab复位请求
+4. 程序开了-O3优化，但该加volatile关键字的全局变量没有加
+5. dfu_start_transfer里面HAL_UART_Transmit_DMA和HAL_UART_Receive_DMA调用__HAL_LOCK失败，返回值是HAL_BUSY
+6. dfu_dma_init里面DMA通道的传输方向配置反了
