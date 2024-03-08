@@ -1,0 +1,3 @@
+COM4
+"C:\Program Files\teraterm\ttermpro.exe" /C=%d /SPEED=115200
+-2000
