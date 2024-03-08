@@ -72,7 +72,7 @@ int main(void)
     if (now - last > 500)
     {
       last = now;
-      printf("ticks=%u\n", now);
+      printf("debug ticks=%u\n", now);
     }
     
     reset_check();

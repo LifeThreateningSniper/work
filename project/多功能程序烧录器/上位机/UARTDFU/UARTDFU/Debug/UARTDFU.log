@@ -1,0 +1,40 @@
+﻿生成启动时间为 2024/3/9 1:23:13。
+     1>项目“E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器\上位机\UARTDFU\UARTDFU\UARTDFU.vcxproj”在节点 2 上(build 个目标)。
+     1>InitializeBuildStatus:
+         正在创建“Debug\UARTDFU.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+       ClCompile:
+         d:\software\vc2010\VS2010\VC\bin\CL.exe /c /ZI /nologo /W3 /WX- /Od /Oy- /D WIN32 /D _DEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt bluetooth.c encoding.c hexfile.c main.c port.c taskbar.c
+         taskbar.c
+         port.c
+         main.c
+         hexfile.c
+         encoding.c
+         bluetooth.c
+         正在生成代码...
+       ResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D _UNICODE /D UNICODE /l"0x0409" /nologo /fo"Debug\UARTDFU.res" UARTDFU.rc 
+       ManifestResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /nologo /fo"Debug\UARTDFU.exe.embed.manifest.res" Debug\UARTDFU_manifest.rc 
+       Link:
+         d:\software\vc2010\VS2010\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器\上位机\UARTDFU\Debug\UARTDFU.exe" /INCREMENTAL /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Debug\UARTDFU.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器\上位机\UARTDFU\Debug\UARTDFU.pdb" /SUBSYSTEM:WINDOWS /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器\上位机\UARTDFU\Debug\UARTDFU.lib" /MACHINE:X86 Debug\UARTDFU.res
+         Debug\UARTDFU.exe.embed.manifest.res
+         Debug\bluetooth.obj
+         Debug\encoding.obj
+         Debug\hexfile.obj
+         Debug\main.obj
+         Debug\port.obj
+         Debug\taskbar.obj
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /out:"Debug\UARTDFU.exe.embed.manifest" /manifest Debug\UARTDFU.exe.intermediate.manifest
+         所有输出均为最新。
+       LinkEmbedManifest:
+         所有输出均为最新。
+         UARTDFU.vcxproj -> E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器\上位机\UARTDFU\Debug\UARTDFU.exe
+       FinalizeBuildStatus:
+         正在删除文件“Debug\UARTDFU.unsuccessfulbuild”。
+         正在对“Debug\UARTDFU.lastbuildstate”执行 Touch 任务。
+     1>已完成生成项目“E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器\上位机\UARTDFU\UARTDFU\UARTDFU.vcxproj”(build 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:05.97

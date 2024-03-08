@@ -558,11 +558,11 @@ ARM Macro Assembler    Page 9
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M3 --apcs=interw
 ork --depend=.\objects\startup_stm32f103xe.d -o.\objects\startup_stm32f103xe.o 
--I"E:\项目\多功能程序烧录器\4. 蓝牙模块\Bootloader_STM32F10x\bootloader\RTE" -I
-C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include -IC:\Keil_v5\ARM\CM
-SIS\Include --predefine="__UVISION_VERSION SETA 514" --predefine="STM32F10X_HD 
-SETA 1" --list=.\listings\startup_stm32f103xe.lst STM32F1xx_HAL_Driver\startup_
-stm32f103xe.s
+-I"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器\下位机\bootlo
+adr\RTE" -IC:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include -IC:\Kei
+l_v5\ARM\CMSIS\Include --predefine="__UVISION_VERSION SETA 514" --predefine="ST
+M32F10X_HD SETA 1" --list=.\listings\startup_stm32f103xe.lst STM32F1xx_HAL_Driv
+er\startup_stm32f103xe.s
 
 
 
