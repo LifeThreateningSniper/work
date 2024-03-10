@@ -148,7 +148,6 @@ static int dfu_process(void)
   do
   {
     // 跳过冗余的0xab同步信号, 寻找头部字段
-    HAL_IWDG_Refresh(&hiwdg);
     memset(uart_data[0], 0, UART_MTU);
     HAL_UART_Receive(&huart4, uart_data[0], UART_MTU, 1000);
     for (j = 0; j < UART_MTU; j++)
@@ -324,7 +323,6 @@ static int dfu_process_firmware_download(void)
   
 #if PROGRAM_ENABLE
   // 擦除需要的Flash页
-  HAL_IWDG_Refresh(&hiwdg);
   HAL_FLASH_Unlock();
   
   addr[0] = FLASH_BASE;
@@ -365,7 +363,6 @@ static int dfu_process_firmware_download(void)
     // 等待FIFO中有数据
     err = 0;
     ticks = HAL_GetTick();
-    HAL_IWDG_Refresh(&hiwdg);
     while (uart_front == uart_rear)
     {
       if (HAL_GetTick() - ticks > 3500)
@@ -373,7 +370,6 @@ static int dfu_process_firmware_download(void)
         // 进入到这里面, 一般是因为传输过程中丢失了某些字节, 无法构成完整的数据包, DMA传输无法完成
         // (这不同于HAL_UART_RxCpltCallback里面的CRC错误, 只有收到了完整的数据包, 但CRC校验不通过, 才认定为CRC错误)
         // 也可能是因为用户取消了程序烧写
-        HAL_IWDG_Refresh(&hiwdg);
         printf("Data timeout!\n");
         status = HAL_UART_Abort(&huart4); // 以阻塞方式强行中止中断或DMA方式的串口传输
         if (status == HAL_OK)
@@ -405,7 +401,6 @@ static int dfu_process_firmware_download(void)
     // 注意: 当地址不能被4整除时, 不能用*(uint32_t *)
     //       应该用*(__packed uint32_t *), 即__UNALIGNED_UINT32_READ, 否则会导致Hard Error
 #if PROGRAM_ENABLE
-    HAL_IWDG_Refresh(&hiwdg);
     for (i = 0; i < size; i += 4)
       HAL_FLASH_Program(FLASH_TYPEPROGRAM_WORD, uart_frontaddr + i, __UNALIGNED_UINT32_READ(uart_data[uart_front] + i));
 #endif
@@ -417,7 +412,6 @@ static int dfu_process_firmware_download(void)
   
   // 结束请求
   assert_param(!uart_busy);
-  HAL_IWDG_Refresh(&hiwdg);
   HAL_NVIC_DisableIRQ(DMA1_Channel4_IRQn);
   HAL_NVIC_DisableIRQ(DMA1_Channel5_IRQn);
   HAL_NVIC_DisableIRQ(UART4_IRQn);
@@ -454,7 +448,6 @@ static int dfu_start_transfer(void)
   if (maxsize == 0)
     return -1; // 固件已传输完毕
   
-  HAL_IWDG_Refresh(&hiwdg);
   uart_busy = 1;
   device_response.addr = uart_rearaddr;
   device_response.size = UART_MTU;
@@ -560,7 +553,7 @@ int main(void)
   SystemCoreClockUpdate(); // system_stm32f1xx.c里面的SystemCoreClock初值有误, 先纠正一下
   HAL_Init(); // 纠正后SysTick才能正确初始化
   
-  iwdg_init();
+  //iwdg_init();
   usart_init(115200);
   printf_enable(PRINTF_ENABLE);
   printf("STM32F10x DFU\n");
@@ -571,7 +564,6 @@ int main(void)
   {
     while (dfu_cnt > 0)
     {
-      HAL_IWDG_Refresh(&hiwdg);
       dfu_cnt--;
       ret = dfu_sync(); // 接收主机的DFU请求
       if (ret == 0)
@@ -582,7 +574,7 @@ int main(void)
         // 暂停, 等待上位机下发命令
         printf("Send any command to continue...\n");
         while (__HAL_UART_GET_FLAG(&huart4, UART_FLAG_RXNE) == RESET)
-          HAL_IWDG_Refresh(&hiwdg);
+          
         HAL_UART_Receive(&huart4, uart_data[0], 1, HAL_MAX_DELAY);
         
         if (ret == 0)
@@ -596,7 +588,6 @@ int main(void)
     }
     
     // 启动用户程序 (若启动成功, 则函数不返回)
-    HAL_IWDG_Refresh(&hiwdg);
     jump_to_application();
     
     // 启动用户程序失败, 再次进入DFU模式
