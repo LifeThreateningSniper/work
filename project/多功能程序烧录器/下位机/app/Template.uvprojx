@@ -309,8 +309,8 @@
               </OCR_RVCT3>
               <OCR_RVCT4>
                 <Type>1</Type>
-                <StartAddress>0x8000000</StartAddress>
-                <Size>0x80000</Size>
+                <StartAddress>0x8005000</StartAddress>
+                <Size>0x7b000</Size>
               </OCR_RVCT4>
               <OCR_RVCT5>
                 <Type>1</Type>
@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F10X_HD</Define>
               <Undefine></Undefine>
-              <IncludePath>.\User;.\Libraries\CMSIS;.\Libraries\STM32F10x_StdPeriph_Driver\inc;.\APP\led;.\Public;.\APP\key;.\APP\exti;.\APP\time;.\APP\pwm;.\APP\iwdg;.\APP\wwdg;.\APP\input;.\APP\wkup;.\APP\adc;.\APP\adc_temp;.\APP\dac;.\APP\dma;.\APP\rtc;.\APP\24Cxx;.\APP\iic;.\APP\tftlcd;.\APP\flash;.\APP\spi;.\APP\stm32_flash;.\APP\touch;.\Malloc;.\APP\sd_sdio;.\Fatfs\src;.\Fatfs\fatfs_app</IncludePath>
+              <IncludePath>.\User;.\Libraries\CMSIS;.\Libraries\STM32F10x_StdPeriph_Driver\inc;.\APP\led;.\Public;.\APP\key;.\APP\exti;.\APP\time;.\APP\pwm;.\APP\iwdg;.\APP\wwdg;.\APP\input;.\APP\wkup;.\APP\adc;.\APP\adc_temp;.\APP\dac;.\APP\dma;.\APP\rtc;.\APP\24Cxx;.\APP\iic;.\APP\tftlcd;.\APP\flash;.\APP\spi;.\APP\stm32_flash;.\APP\touch;.\Malloc;.\APP\sd_sdio;.\Fatfs\src;.\Fatfs\fatfs_app;.\APP\oled</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -577,6 +577,11 @@
               <FileName>oled.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\APP\oled\oled.c</FilePath>
+            </File>
+            <File>
+              <FileName>pwm.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\pwm\pwm.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -33,6 +33,7 @@
 .\obj\main.o: .\APP\led\led.h
 .\obj\main.o: .\Public\usart.h
 .\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\main.o: .\APP\oled\oled.h
 .\obj\main.o: .\APP\tftlcd\tftlcd.h
 .\obj\main.o: .\APP\key\key.h
 .\obj\main.o: .\Malloc\malloc.h

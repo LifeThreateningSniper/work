@@ -29,6 +29,7 @@
 ".\obj\flash.o"
 ".\obj\sd_sdio.o"
 ".\obj\oled.o"
+".\obj\pwm.o"
 ".\obj\system.o"
 ".\obj\systick.o"
 ".\obj\usart.o"

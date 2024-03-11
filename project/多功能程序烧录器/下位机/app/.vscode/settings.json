@@ -1,0 +1,9 @@
+{
+    "files.associations": {
+        "oled_font.h": "c",
+        "oled.h": "c",
+        "led.h": "c",
+        "system.h": "c",
+        "pwm.h": "c"
+    }
+}
