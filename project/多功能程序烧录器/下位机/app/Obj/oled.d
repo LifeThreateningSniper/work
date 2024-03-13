@@ -32,3 +32,5 @@
 .\obj\oled.o: .\Public\system.h
 .\obj\oled.o: APP\oled\oled.h
 .\obj\oled.o: APP\oled\OLED_Font.h
+.\obj\oled.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\stdio.h
+.\obj\oled.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h

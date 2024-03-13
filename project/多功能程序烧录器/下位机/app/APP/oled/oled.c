@@ -2,11 +2,15 @@
 #include "SysTick.h"
 #include "oled.h"
 #include "OLED_Font.h"
+#include "stdio.h"
+#include "string.h"
+
+unsigned char OLED_GRAM[128][8];
 
 /*引脚配置*/
 #define OLED_W_SCL(x)		GPIO_WriteBit(GPIOC, GPIO_Pin_0, (BitAction)(x))
 #define OLED_W_SDA(x)		GPIO_WriteBit(GPIOC, GPIO_Pin_1, (BitAction)(x))
-	
+
 /*引脚初始化*/
 void OLED_I2C_Init(void)
 {
@@ -280,7 +284,7 @@ void OLED_Init(void)
 	}
 	
 	OLED_I2C_Init();			//端口初始化
-	
+
 	OLED_WriteCommand(0xAE);	//关闭显示
 	
 	OLED_WriteCommand(0xD5);	//设置显示时钟分频比/振荡器频率
@@ -318,6 +322,137 @@ void OLED_Init(void)
 	OLED_WriteCommand(0x14);
  
 	OLED_WriteCommand(0xAF);	//开启显示
-		
+
 	OLED_Clear();				//OLED清屏
+}
+
+// 画点
+void OLED_DrawDot(unsigned char x, unsigned char y, unsigned char t)
+{
+	unsigned char pos, bx, temp = 0;
+		
+	// 此OLED的分辨率为128*64，横坐标大于127，纵坐标大于63，则参数非法 
+	if ( x > 127 || y > 63)  {
+		return;
+	}
+	// 因为此OLED是按页显示，每页8个像素，所以/8用于计算待显示的点在哪页中
+	pos = (y) / 8;
+	// 一列中有8个像素，所以计算一下待显示的点，在当前列中的第几个点
+	bx = y % 8;
+	// 移位，让temp的第bx位为1
+	temp = 1 << (bx);
+		
+	if (t) {
+		OLED_GRAM[x][pos]|=temp;  //第bx位，置1，其他位值不变
+	} else {
+		OLED_GRAM[x][pos]&=~temp;  //第bx位，置0，其他位值不变		
+	}
+}
+
+// 画线
+void OLED_DrawLine(unsigned int x1, unsigned int y1, unsigned int x2,unsigned int y2)
+{
+	unsigned int t; 
+	int offset_x, offset_y; 
+	int incx, incy, uRow, uCol; 
+	float K = 0.0f;
+
+	offset_x = x2 - x1;
+	offset_y = y2 - y1;
+	uRow = x1; 
+	uCol = y1;
+
+	if(offset_x > 0) {
+		incx = 1;
+	} else if(offset_x == 0) {//垂直线
+		incx = 0;
+	} else {
+		incx = -1;
+		offset_x = - offset_x;
+	}
+ 
+	if(offset_y > 0) {
+		incy = 1;
+	} else if(offset_y == 0) {
+		incy=0;    //水平线
+	} else {
+		incy = -1;
+		offset_y = -offset_y;
+	}
+
+	if(incx == 0) {
+		for(t = 0; t <= offset_y + 1; t++) { 
+			OLED_DrawDot(uRow, uCol + t * incy, 1);
+		}
+	} else if (incy == 0) {
+		for(t = 0; t <= offset_x + 1; t++){ 
+			OLED_DrawDot(uRow + t * incx, uCol, 1);
+		}
+	} else {
+		K = (float)(((float)y2 - (float)y1) * 1.000 / ((float)x2 - (float)x1));
+		for(t = 0; t <= offset_x + 1; t++) { 
+			OLED_DrawDot(uRow+t, (u8)(uCol + t*K), 1);
+		}
+	}
+}
+
+// 画圆
+void OLED_DrawCircle(u8 x,u8 y, u8 r)
+{
+	int a, b,num;
+    a = 0;
+    b = r;
+    while(2 * b * b >= r * r) {
+        OLED_DrawDot(x + a, y - b, 1);
+        OLED_DrawDot(x - a, y - b, 1);
+        OLED_DrawDot(x - a, y + b, 1);
+        OLED_DrawDot(x + a, y + b, 1);
+ 
+        OLED_DrawDot(x + b, y + a, 1);
+        OLED_DrawDot(x + b, y - a, 1);
+        OLED_DrawDot(x - b, y - a, 1);
+        OLED_DrawDot(x - b, y + a, 1);
+        
+        a++;
+        num = (a * a + b * b) - r*r;//计算画的点离圆心的距离
+        if(num > 0) {
+            b--;
+            a--;
+        }
+    }
+}
+void OLED_DrawClear(void)
+{
+	int i;
+	
+	for (i = 0; i < 128; i++) {
+		memset(OLED_GRAM[i], 0, sizeof(unsigned char) * 8);
+	}
+}
+
+#define PWM_Y_LOW 56
+#define PWM_Y_HIGH 32
+
+void OLED_DrawPwm(int x)
+{
+	int i;
+
+	for (i = 0; i < 128; i += (2*x)) {
+		OLED_DrawLine(i, PWM_Y_LOW, i+x, PWM_Y_LOW); 		// 上半个周期横线
+		OLED_DrawLine(i+x, PWM_Y_LOW, i+x, PWM_Y_HIGH); 	// 上半个周期竖线
+		OLED_DrawLine(i+x, PWM_Y_HIGH, i+x+x, PWM_Y_HIGH); 	// 下半个周期横线
+		OLED_DrawLine(i+x+x, PWM_Y_HIGH, i+x+x, PWM_Y_LOW); // 下半个周期竖线
+	}
+}
+
+// 刷新屏幕
+void OLED_Refresh_Gram(void)
+{
+    unsigned char i, n;
+    for(i = 0; i < 8; i++) {
+		OLED_SetCursor(i, 0); 
+        for(n = 0; n < 128; n++) { //写一PAGE的GDDRAM数据
+            OLED_WriteData(OLED_GRAM[n][i]);
+        }
+    }
 }

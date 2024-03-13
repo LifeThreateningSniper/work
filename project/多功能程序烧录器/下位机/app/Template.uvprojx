@@ -554,11 +554,6 @@
               <FilePath>.\APP\led\led.c</FilePath>
             </File>
             <File>
-              <FileName>tftlcd.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\APP\tftlcd\tftlcd.c</FilePath>
-            </File>
-            <File>
               <FileName>spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\APP\spi\spi.c</FilePath>
@@ -582,6 +577,11 @@
               <FileName>pwm.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\APP\pwm\pwm.c</FilePath>
+            </File>
+            <File>
+              <FileName>time.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\APP\time\time.c</FilePath>
             </File>
           </Files>
         </Group>

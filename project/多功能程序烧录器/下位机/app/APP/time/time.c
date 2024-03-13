@@ -1,5 +1,6 @@
 #include "time.h"
 #include "led.h"
+#include "oled.h"
 
 /*******************************************************************************
 * º¯ Êý Ãû         : TIM4_Init
@@ -41,9 +42,8 @@ void TIM4_Init(u16 per,u16 psc)
 *******************************************************************************/
 void TIM4_IRQHandler(void)
 {
-	if(TIM_GetITStatus(TIM4,TIM_IT_Update))
-	{
-		LED2=!LED2;
+	if(TIM_GetITStatus(TIM4,TIM_IT_Update)) {
+
 	}
 	TIM_ClearITPendingBit(TIM4,TIM_IT_Update);	
 }

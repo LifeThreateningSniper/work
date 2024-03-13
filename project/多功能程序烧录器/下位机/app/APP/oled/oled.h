@@ -10,4 +10,10 @@ void OLED_ShowSignedNum(uint8_t Line, uint8_t Column, int32_t Number, uint8_t Le
 void OLED_ShowHexNum(uint8_t Line, uint8_t Column, uint32_t Number, uint8_t Length);
 void OLED_ShowBinNum(uint8_t Line, uint8_t Column, uint32_t Number, uint8_t Length);
  
+void OLED_DrawDot(unsigned char x,unsigned char y,unsigned char t);
+void OLED_DrawLine(unsigned int x1, unsigned int y1, unsigned int x2,unsigned int y2);
+void OLED_DrawCircle(u8 x,u8 y, u8 r);
+void OLED_Refresh_Gram(void);
+void OLED_DrawPwm(int freq);
+void OLED_DrawClear(void);
 #endif

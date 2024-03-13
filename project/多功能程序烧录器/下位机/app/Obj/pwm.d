@@ -30,3 +30,4 @@
 .\obj\pwm.o: .\Libraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_usart.h
 .\obj\pwm.o: .\Libraries\STM32F10x_StdPeriph_Driver\inc\stm32f10x_wwdg.h
 .\obj\pwm.o: .\Libraries\STM32F10x_StdPeriph_Driver\inc\misc.h
+.\obj\pwm.o: .\APP\led\led.h
