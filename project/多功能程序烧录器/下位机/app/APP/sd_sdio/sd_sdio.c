@@ -82,7 +82,7 @@ SD_Error SD_Init(void)
 		errorstatus=SD_SelectDeselect((u32)(SDCardInfo.RCA<<16));//选中SD卡
 	
 	if(errorstatus==SD_OK)
-		errorstatus=SD_EnableWideBusOperation(1);	//4位宽度,如果是MMC卡,则不能用4位模式 
+		errorstatus=SD_EnableWideBusOperation(0);	//1位宽度,如果是MMC卡,则不能用4位模式 
 	
 	if((errorstatus==SD_OK)||(SDIO_MULTIMEDIA_CARD==CardType))
 	{  		    
