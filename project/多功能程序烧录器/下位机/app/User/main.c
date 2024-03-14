@@ -52,41 +52,26 @@ int main()
 	OLED_Init();
 	OLED_Clear(); 
 	TIM3_IC_Init();	
-	//EN25QXX_Init();				//初始化EN25Q128	  
 	my_mem_init(SRAMIN);		//初始化内部内存池
 	
-	// while(SD_Init())//检测不到SD卡
-	// {
-		
-	// 	printf("SD Card Error!\r\n");
-	// 	delay_ms(500);					
-	// }
+	while(SD_Init())//检测不到SD卡
+	{
+		printf("SD Card Error!\r\n");
+		delay_ms(500);					
+	}
 	
-	// //检测SD卡成功 			
-	// printf("SD Card OK!\r\n");	
+	//检测SD卡成功 			
+	printf("SD Card OK!\r\n");	
 	
-	// FATFS_Init();				//为fatfs相关变量申请内存	
-	// printf("SD Card OK1111!\r\n");				 
-  	// f_mount(fs[0],"0:",1); 		//挂载SD卡
-	// printf("SD Card OK222!\r\n");
-	// res=f_mount(fs[1],"1:",1); 	//挂载FLASH.
-	// if(res==0X0D)//FLASH磁盘,FAT文件系统错误,重新格式化FLASH
-	// {
-	// 	res=f_mkfs("1:",1,4096);//格式化FLASH,1,盘符;1,不需要引导区,8个扇区为1个簇
-	// 	if(res==0)
-	// 	{
-	// 		f_setlabel((const TCHAR *)"1:PRECHIN");	//设置Flash磁盘的名字为：PRECHIN
-	// 	}
-	// 	else 
-	// 	delay_ms(1000);
-	// }	
-	// LCD_Fill(10,80,tftlcd_data.width,80+16,WHITE);		//清除显示
-	// while(fatfs_getfree("0:",&total,&free))	//得到SD卡的总容量和剩余容量
-	// {
-	// 	delay_ms(200);
-	// 	LED2=!LED2;
-	// }	
-	// printf("SD Card Total Size: %dMB, Free Size: %dMB!\r\n", total, free);		
+	FATFS_Init();				//为fatfs相关变量申请内存	
+  	f_mount(fs[0],"0:",1); 		//挂载SD卡
+	while(fatfs_getfree("0:",&total,&free))	//得到SD卡的总容量和剩余容量
+	{
+		delay_ms(200);
+		LED2=!LED2;
+	}	
+	printf("SD Card Total Size: %dMB, Free Size: %dMB!\r\n", total, free);		
+	
 	oldfreq = Get_TIM3_CH1_Freq();
 	CalcPlayFreq(oldfreq);
 	OLED_Refresh_Gram();
