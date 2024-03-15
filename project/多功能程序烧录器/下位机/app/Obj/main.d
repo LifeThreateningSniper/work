@@ -44,3 +44,4 @@
 .\obj\main.o: .\Fatfs\src\ffconf.h
 .\obj\main.o: .\Fatfs\fatfs_app\fatfs_app.h
 .\obj\main.o: .\APP\pwm\pwm.h
+.\obj\main.o: C:\Keil_v5\ARM\ARMCC\Bin\..\include\string.h
