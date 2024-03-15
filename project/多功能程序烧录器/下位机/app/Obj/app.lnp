@@ -38,7 +38,7 @@
 ".\obj\ff.o"
 ".\obj\fatfs_app.o"
 ".\obj\cc936.o"
---library_type=microlib --strict --scatter ".\Obj\Template.sct"
+--library_type=microlib --strict --scatter ".\Obj\app.sct"
 --summary_stderr --info summarysizes --map --xref --callgraph --symbols
 --info sizes --info totals --info unused --info veneers
---list ".\Obj\Template.map" -o .\Obj\Template.axf
+--list ".\Obj\app.map" -o .\Obj\app.axf
