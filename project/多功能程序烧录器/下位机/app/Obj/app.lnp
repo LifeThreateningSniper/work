@@ -30,6 +30,7 @@
 ".\obj\oled.o"
 ".\obj\pwm.o"
 ".\obj\time.o"
+".\obj\stm32_flash.o"
 ".\obj\system.o"
 ".\obj\systick.o"
 ".\obj\usart.o"

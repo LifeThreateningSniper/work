@@ -13,6 +13,9 @@
 #define RESERVED_SIZE 0x800 // 请参考system_stm32xxx.c中描述的VECT_TAB_OFFSET的对齐方式
                              // 里面有这样一句话: Vector Table base offset field. This value must be a multiple of 0xXXX.
                              // 必须保证设置RESERVED_SIZE的值能被0xXXX整除, 并且在START_ADDR所在的Flash页上, RESERVED_SIZE能占满整页
+#define APP1_VECTOR_START_ADDR            (0x8005000)  	// app1在flash的0x5000~0x423FF，从20KB到264KB，共计使用244KB
+#define APP2_VECTOR_START_ADDR            (0x8042000)  	// app1在flash的0x42400~0x7F7FF，从264KB到510KB，共计使用246KB
+#define USER_VECTOR_START_ADDR 			  (0X807F800)		// user在flash的0x7F800~0x7FFFF，共2Kb
 
 #define HARDWARE_CRC 0 // 启用硬件CRC校验
 #define PROGRAM_ENABLE 1 // 是否真正烧写Flash (调试用)
@@ -500,9 +503,19 @@ static int jump_to_application(void)
   static Runnable run;
   const uint8_t *crc = (const uint8_t *)(START_ADDR + 4);
   const uint32_t *size = (const uint32_t *)START_ADDR;
-  uint32_t *addr = (uint32_t *)(START_ADDR + RESERVED_SIZE + 4);
-  uint32_t *msp = (uint32_t *)(START_ADDR + RESERVED_SIZE);
+  uint32_t *addr = NULL;
+  uint32_t *msp = NULL;
+  uint8_t *pBootFlag = NULL;
   uint32_t value;
+
+  pBootFlag = (uint8_t *)USER_VECTOR_START_ADDR;
+  if (*pBootFlag == 2) {
+      addr = (uint32_t *)(APP2_VECTOR_START_ADDR + 4);
+      msp = (uint32_t *)(APP2_VECTOR_START_ADDR);
+  } else {
+    addr = (uint32_t *)(APP1_VECTOR_START_ADDR + 4);
+    msp = (uint32_t *)(APP1_VECTOR_START_ADDR);
+  }
   
   if (*(crc + 1) == 0x54)
   {
@@ -520,14 +533,14 @@ static int jump_to_application(void)
     
     value = calc_crc8((const uint8_t *)START_ADDR + RESERVED_SIZE, *size);
     if (*crc == value)
-      printf("CRC passed! addr=0x%08x, msp=0x%08x\n", *addr, *msp);
+      printf("CRC passed!\n");
     else
     {
       printf("CRC failed! 0x%02x!=0x%02x\n", *crc, value);
       return -1;
     }
   }
-  
+  printf("app addr=%p, msp=%p\n", addr, msp);
   if ((*msp & 0xf0000000) != 0x20000000 || (*addr & 0xff000000) != 0x08000000)
   {
     printf("Program data error!\n");
@@ -549,6 +562,10 @@ int main(void)
 {
   int dfu_cnt = 3; // DFU请求同步次数 (数值越大, 上位机检测到设备的成功率越高, 但开机后程序启动越慢)
   int ret;
+  int dfuSuccessFlag = 0;
+  uint8_t *pBootFlag = NULL;
+  FLASH_EraseInitTypeDef erase;
+  uint32_t err;
   
   SystemCoreClockUpdate(); // system_stm32f1xx.c里面的SystemCoreClock初值有误, 先纠正一下
   HAL_Init(); // 纠正后SysTick才能正确初始化
@@ -571,8 +588,20 @@ int main(void)
         // 成功进入DFU模式
         ret = dfu_process(); // DFU处理
         
+        // 无线下载成功后，固定运行app1
+        HAL_FLASH_Unlock();
+        erase.Banks = FLASH_BANK_1;
+        erase.TypeErase = FLASH_TYPEERASE_PAGES;
+        erase.PageAddress = USER_VECTOR_START_ADDR;
+        erase.NbPages = 1;
+        HAL_FLASHEx_Erase(&erase, &err);
+      
+        HAL_FLASH_Program(FLASH_TYPEPROGRAM_HALFWORD, USER_VECTOR_START_ADDR, 1); 
+        HAL_FLASH_Lock();
+
         // 暂停, 等待上位机下发命令
-        printf("Send any command to continue...\n");
+        pBootFlag = (uint8_t *)USER_VECTOR_START_ADDR;
+        printf("Send any command to continue... BootFlag=%d\n", *pBootFlag);
         while (__HAL_UART_GET_FLAG(&huart4, UART_FLAG_RXNE) == RESET)
           
         HAL_UART_Receive(&huart4, uart_data[0], 1, HAL_MAX_DELAY);
