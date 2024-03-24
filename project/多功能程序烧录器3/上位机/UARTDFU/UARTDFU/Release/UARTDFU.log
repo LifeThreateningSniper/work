@@ -1,0 +1,36 @@
+﻿生成启动时间为 2024/3/24 13:23:05。
+     1>项目“E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\上位机\UARTDFU\UARTDFU\UARTDFU.vcxproj”在节点 2 上(rebuild 个目标)。
+     1>InitializeBuildStatus:
+         正在创建“Release\UARTDFU.unsuccessfulbuild”，因为已指定“AlwaysCreate”。
+       ClCompile:
+         d:\software\vc2010\VS2010\VC\bin\CL.exe /c /Zi /nologo /W3 /WX- /O2 /Oi /Oy- /GL /D WIN32 /D NDEBUG /D _WINDOWS /D _UNICODE /D UNICODE /Gm- /EHsc /MT /GS /Gy /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Release\\" /Fd"Release\vc100.pdb" /Gd /TC /analyze- /errorReport:prompt bluetooth.c encoding.c hexfile.c main.c port.c taskbar.c
+         bluetooth.c
+         encoding.c
+         hexfile.c
+         main.c
+     1>main.c(316): warning C4018: “<”: 有符号/无符号不匹配
+         port.c
+         taskbar.c
+       ResourceCompile:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\rc.exe /D _UNICODE /D UNICODE /l"0x0409" /nologo /fo"Release\UARTDFU.res" UARTDFU.rc 
+       Link:
+         d:\software\vc2010\VS2010\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\上位机\UARTDFU\Release\UARTDFU.exe" /INCREMENTAL:NO /NOLOGO kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /ManifestFile:"Release\UARTDFU.exe.intermediate.manifest" /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /DEBUG /PDB:"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\上位机\UARTDFU\Release\UARTDFU.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\上位机\UARTDFU\Release\UARTDFU.lib" /MACHINE:X86 Release\UARTDFU.res
+         Release\bluetooth.obj
+         Release\encoding.obj
+         Release\hexfile.obj
+         Release\main.obj
+         Release\port.obj
+         Release\taskbar.obj
+         正在生成代码
+         已完成代码的生成
+         UARTDFU.vcxproj -> E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\上位机\UARTDFU\Release\UARTDFU.exe
+       Manifest:
+         C:\Program Files (x86)\Microsoft SDKs\Windows\v7.0A\bin\mt.exe /nologo /verbose /outputresource:"E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\上位机\UARTDFU\Release\UARTDFU.exe;#1" /manifest Release\UARTDFU.exe.intermediate.manifest
+       FinalizeBuildStatus:
+         正在删除文件“Release\UARTDFU.unsuccessfulbuild”。
+         正在对“Release\UARTDFU.lastbuildstate”执行 Touch 任务。
+     1>已完成生成项目“E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\上位机\UARTDFU\UARTDFU\UARTDFU.vcxproj”(rebuild 个目标)的操作。
+
+生成成功。
+
+已用时间 00:00:03.89
