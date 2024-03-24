@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "sd_sdio.h": "c",
+        "fatfs_app.h": "c"
+    }
+}

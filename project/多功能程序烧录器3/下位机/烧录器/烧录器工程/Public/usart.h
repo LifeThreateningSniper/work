@@ -5,6 +5,7 @@
 #include "stdio.h" 
 
 void USART1_Init(u32 bound);
+void USART2_Init(u32 bound);
 void USART3_Init(u32 bound);
 
 

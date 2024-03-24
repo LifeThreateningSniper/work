@@ -1,5 +1,5 @@
 Dependencies for Project 'bootloader', Target 'Target 1': (DO NOT MODIFY !)
-F (.\main.c)(0x65FFB5D4)(--c99 -c --cpu Cortex-M3 -g -O3 --apcs=interwork --split_sections -I.\STM32F1xx_HAL_Driver -I.\STM32F1xx_HAL_Driver\Inc-I "E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\下位机\目标机\bootloadr\RTE"-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DSTM32F103xE -DUSE_FULL_ASSERT -DUSE_HAL_DRIVER-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
+F (.\main.c)(0x66004F98)(--c99 -c --cpu Cortex-M3 -g -O3 --apcs=interwork --split_sections -I.\STM32F1xx_HAL_Driver -I.\STM32F1xx_HAL_Driver\Inc-I "E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\下位机\目标机\bootloadr\RTE"-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DSTM32F103xE -DUSE_FULL_ASSERT -DUSE_HAL_DRIVER-o .\objects\main.o --omf_browse .\objects\main.crf --depend .\objects\main.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5475F300)
 I (.\STM32F1xx_HAL_Driver\stm32f1xx.h)(0x60ACE8E1)
 I (.\STM32F1xx_HAL_Driver\stm32f103xe.h)(0x60ACE8E1)
@@ -59,9 +59,9 @@ I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pcd_ex.h)(0x60ACE922)
 I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_hcd.h)(0x60ACE922)
 I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_mmc.h)(0x60ACE913)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5475F300)
-I (common.h)(0x65FE5AD9)
+I (common.h)(0x66004CE4)
 I (DFU.h)(0x5EDA2A8A)
-F (.\common.c)(0x65FE682D)(--c99 -c --cpu Cortex-M3 -g -O3 --apcs=interwork --split_sections -I.\STM32F1xx_HAL_Driver -I.\STM32F1xx_HAL_Driver\Inc-I "E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\下位机\目标机\bootloadr\RTE"-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DSTM32F103xE -DUSE_FULL_ASSERT -DUSE_HAL_DRIVER-o .\objects\common.o --omf_browse .\objects\common.crf --depend .\objects\common.d)
+F (.\common.c)(0x66004CCF)(--c99 -c --cpu Cortex-M3 -g -O3 --apcs=interwork --split_sections -I.\STM32F1xx_HAL_Driver -I.\STM32F1xx_HAL_Driver\Inc-I "E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\下位机\目标机\bootloadr\RTE"-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DSTM32F103xE -DUSE_FULL_ASSERT -DUSE_HAL_DRIVER-o .\objects\common.o --omf_browse .\objects\common.crf --depend .\objects\common.d)
 I (C:\Keil_v5\ARM\ARMCC\include\stdio.h)(0x5475F300)
 I (C:\Keil_v5\ARM\ARMCC\include\stdlib.h)(0x5475F300)
 I (.\STM32F1xx_HAL_Driver\stm32f1xx.h)(0x60ACE8E1)
@@ -122,7 +122,7 @@ I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pcd_ex.h)(0x60ACE922)
 I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_hcd.h)(0x60ACE922)
 I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_mmc.h)(0x60ACE913)
 I (C:\Keil_v5\ARM\ARMCC\include\string.h)(0x5475F300)
-I (common.h)(0x65FE5AD9)
+I (common.h)(0x66004CE4)
 F (.\STM32F1xx_HAL_Driver\Src\stm32f1xx_hal.c)(0x60ACE905)(--c99 -c --cpu Cortex-M3 -g -O3 --apcs=interwork --split_sections -I.\STM32F1xx_HAL_Driver -I.\STM32F1xx_HAL_Driver\Inc-I "E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\下位机\目标机\bootloadr\RTE"-I C:\Keil_v5\ARM\PACK\Keil\STM32F1xx_DFP\1.0.5\Device\Include-I C:\Keil_v5\ARM\CMSIS\Include-D__UVISION_VERSION="514" -DSTM32F10X_HD -DSTM32F103xE -DUSE_FULL_ASSERT -DUSE_HAL_DRIVER-o .\objects\stm32f1xx_hal.o --omf_browse .\objects\stm32f1xx_hal.crf --depend .\objects\stm32f1xx_hal.d)
 I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal.h)(0x60ACE905)
 I (.\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_conf.h)(0x60ACE905)

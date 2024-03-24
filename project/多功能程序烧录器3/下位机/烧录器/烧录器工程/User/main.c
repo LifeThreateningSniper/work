@@ -29,6 +29,8 @@ typedef void (*Runnable)(void);
 uint8_t g_FirmwareWriteBuffer[READ_BUFFER_SIZE] = {0};
 uint8_t g_FirmwareReadBuffer[READ_BUFFER_SIZE] = {0};
 
+uint8_t g_UpgradeMode = 1;
+
 void CalcPlayFreq(int freq)
 {
 	int playfreq = 2;
@@ -122,36 +124,27 @@ int main()
 {
 	u32 total, free;
 	u8 val;
+	u8 key = 0;
 	uint32_t oldfreq = 0;
 	uint32_t curfreq = 0;
 	char str[32] = {0};
 	char buff[128] = {0};
 	uint32_t bootAddr;
 	uint8_t *bootFlag = NULL;
-#if 0
-	// 1. 向量表偏移量设置
-	bootFlag = (uint8_t *)USER_VECTOR_START_ADDR;
-	if (*bootFlag == 2) {
-		bootAddr = APP2_VECTOR_START_ADDR;
-	} else { // 默认从app1启动（串口烧录和无线烧录固定从app1启动）
-		bootAddr = APP1_VECTOR_START_ADDR;
-	}
 
-	SCB->VTOR = NVIC_VectTab_FLASH | (bootAddr & (uint32_t)0x1FFFFF80);
-	__enable_irq();	//使能中断
-#endif
 	// 2. 初始化系统配置
 	SysTick_Init(72);
 	NVIC_PriorityGroupConfig(NVIC_PriorityGroup_2);  //中断优先级分组 分2组
 	LED_Init();
+	KEY_Init();
 	USART1_Init(115200);
+	USART2_Init(115200);
 	USART3_Init(115200);
-	// TIM4_Init(1000,72-1);  //定时0.1ms
-	printf("Start Run App%d...\r\n", (*bootFlag == 2) ? 2 : 1);
-#if 0
+	TIM4_Init(10000,72000-1);  //定时1s
 	// 3. 其他外设初始化
 	OLED_Init();
 	OLED_Clear(); 
+#if 0
 	OLED_ShowString(1, 1, "Start SD check..");
 	TIM3_IC_Init();	
 	my_mem_init(SRAMIN);		//初始化内部内存池
@@ -196,9 +189,32 @@ int main()
 	OLED_Refresh_Gram();
 	AppLogWrite("Enter in while....");
 #endif
+	printf("In While\r\n");
 	while(1)
 	{
-		LED2=!LED2;
-		delay_ms(500);
+		key = KEY_Scan(0);
+		switch (key) {
+			case KEY_UP_PRESS:
+				g_UpgradeMode = 1;
+				break;
+			case KEY0_PRESS:
+				g_UpgradeMode = 2;
+				break;
+			case KEY1_PRESS:
+				g_UpgradeMode =3;
+				break;
+			default:
+				break;
+		}
+		if (g_UpgradeMode == 1) {
+			OLED_ShowString(1, 1, "Wireless upgrade");
+		} else if (g_UpgradeMode == 2) {
+			OLED_ShowString(1, 1, "Wired    upgrade");
+		} else if (g_UpgradeMode == 3) {
+			OLED_ShowString(1, 1, "SDcard   upgrade");
+		}
+		// printf("g_UpgradeMode = %d\r\n", g_UpgradeMode);
+		delay_ms(100);
+		//OLED_Clear();
 	}
 }

@@ -32,6 +32,7 @@
 ".\obj\time.o"
 ".\obj\stm32_flash.o"
 ".\obj\upgrade.o"
+".\obj\key.o"
 ".\obj\system.o"
 ".\obj\systick.o"
 ".\obj\usart.o"

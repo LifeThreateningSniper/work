@@ -15,7 +15,7 @@
 #endif
 #endif
 
-extern UART_HandleTypeDef huart1, huart3;
+extern UART_HandleTypeDef huart1, huart2, huart3;
 
 struct __FILE
 {

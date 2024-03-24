@@ -8,7 +8,7 @@
 
 FILE __stdout = {1};
 FILE __stderr = {2};
-UART_HandleTypeDef huart1, huart3;
+UART_HandleTypeDef huart1, huart2, huart3;
 static int printf_enabled;
 
 /* main函数返回时执行的函数 */
@@ -72,6 +72,7 @@ void usart_init(int baud_rate)
   __HAL_RCC_GPIOA_CLK_ENABLE();
   __HAL_RCC_GPIOB_CLK_ENABLE();
   __HAL_RCC_USART1_CLK_ENABLE();
+  __HAL_RCC_USART2_CLK_ENABLE();
   __HAL_RCC_USART3_CLK_ENABLE();
   
   gpio.Mode = GPIO_MODE_AF_PP;
@@ -82,6 +83,16 @@ void usart_init(int baud_rate)
   gpio.Mode = GPIO_MODE_INPUT;
   gpio.Pin = GPIO_PIN_10;
   gpio.Pull = GPIO_PULLUP;
+  HAL_GPIO_Init(GPIOA, &gpio);
+
+  gpio.Mode = GPIO_MODE_AF_PP;
+  gpio.Pin = GPIO_PIN_2;
+  gpio.Speed = GPIO_SPEED_FREQ_LOW;
+  HAL_GPIO_Init(GPIOA, &gpio);
+  
+  gpio.Mode = GPIO_MODE_INPUT;
+  gpio.Pin = GPIO_PIN_3;
+  gpio.Pull = GPIO_PULLUP;  // 关闭上拉，解决烧录器与目标接的串口通信失败问题
   HAL_GPIO_Init(GPIOA, &gpio);
   
   gpio.Mode = GPIO_MODE_AF_PP;
@@ -104,7 +115,13 @@ void usart_init(int baud_rate)
   huart1.Init.Mode = UART_MODE_TX_RX;
   HAL_UART_Init(&huart1);
   
-  // printf调试用的串口
+  // 蓝牙串口
+  huart2.Instance = USART2;
+  huart2.Init.BaudRate = baud_rate;
+  huart2.Init.Mode = UART_MODE_TX_RX;
+  HAL_UART_Init(&huart2);
+
+  // 有线串口
   huart3.Instance = USART3;
   huart3.Init.BaudRate = baud_rate;
   huart3.Init.Mode = UART_MODE_TX_RX;

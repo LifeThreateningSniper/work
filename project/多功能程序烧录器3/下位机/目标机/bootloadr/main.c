@@ -29,6 +29,7 @@ static int dfu_process_firmware_download(void);
 static int dfu_start_transfer(void);
 
 DMA_HandleTypeDef hdma12, hdma13;
+DMA_HandleTypeDef hdma17, hdma16;
 IWDG_HandleTypeDef hiwdg;
 // 下面这几款是目前市面上能买到的芯片, 其他的例如F101、F102、F105系列已经停产, 基本买不到了
 // {-页数, -页大小}
@@ -102,6 +103,7 @@ static uint8_t calc_crc8(const void *data, int len)
 // 注意文件最后还有DMA中断的函数名也要改
 static void dfu_dma_init(void)
 {
+#if 0
   if (hdma12.Instance != NULL)
     return;
   
@@ -128,6 +130,33 @@ static void dfu_dma_init(void)
   hdma13.Init.Priority = DMA_PRIORITY_HIGH;
   HAL_DMA_Init(&hdma13);
   __HAL_LINKDMA(&huart3, hdmarx, hdma13);
+#endif
+  if (hdma17.Instance != NULL)
+  return;
+  
+  __HAL_RCC_DMA1_CLK_ENABLE();
+  
+  hdma17.Instance = DMA1_Channel7;
+  hdma17.Init.Direction = DMA_MEMORY_TO_PERIPH; // 注意方向不要写反了(1)
+  hdma17.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+  hdma17.Init.MemInc = DMA_MINC_ENABLE;
+  hdma17.Init.Mode = DMA_NORMAL;
+  hdma17.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  hdma17.Init.PeriphInc = DMA_PINC_DISABLE;
+  hdma17.Init.Priority = DMA_PRIORITY_HIGH;
+  HAL_DMA_Init(&hdma17);
+  __HAL_LINKDMA(&huart2, hdmatx, hdma17); // 注意方向不要写反了(2)
+  
+  hdma16.Instance = DMA1_Channel6;
+  hdma16.Init.Direction = DMA_PERIPH_TO_MEMORY;
+  hdma16.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+  hdma16.Init.MemInc = DMA_MINC_ENABLE;
+  hdma16.Init.Mode = DMA_NORMAL;
+  hdma16.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+  hdma16.Init.PeriphInc = DMA_PINC_DISABLE;
+  hdma16.Init.Priority = DMA_PRIORITY_HIGH;
+  HAL_DMA_Init(&hdma16);
+  __HAL_LINKDMA(&huart2, hdmarx, hdma16);
 }
 
 static int dfu_process(void)
@@ -140,7 +169,8 @@ static int dfu_process(void)
   printf("Enter DFU mode 111!\n");
   // 发送成功进入DFU模式的回应
   memset(sync, 0xcd, sizeof(sync));
-  HAL_UART_Transmit(&huart3, sync, sizeof(sync), HAL_MAX_DELAY);
+  //HAL_UART_Transmit(&huart3, sync, sizeof(sync), HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2, sync, sizeof(sync), HAL_MAX_DELAY);
   printf("Enter DFU mode!\n");
   
   // 接收请求信息
@@ -149,7 +179,8 @@ static int dfu_process(void)
   {
     // 跳过冗余的0xab同步信号, 寻找头部字段
     memset(uart_data[0], 0, UART_MTU);
-    HAL_UART_Receive(&huart3, uart_data[0], UART_MTU, 10000);
+    //HAL_UART_Receive(&huart3, uart_data[0], UART_MTU, 10000);
+    HAL_UART_Receive(&huart2, uart_data[0], UART_MTU, 10000);
     for (j = 0; j < UART_MTU; j++)
     {
       if (uart_data[0][j] != 0xab)
@@ -201,7 +232,8 @@ static int dfu_process(void)
       device_response.addr = 0xffffffff;
       device_response.size = 0xffffffff;
       device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-      HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+      //HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+      HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
     }
   } while (!header_valid);
   
@@ -263,7 +295,8 @@ static int dfu_process_crc_config(const CRCConfig *config)
   device_response.addr = (uintptr_t)value;
   device_response.size = (memcmp((void *)START_ADDR, buffer, sizeof(buffer)) == 0);
   device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-  HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(device_response), HAL_MAX_DELAY);
+  // HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(device_response), HAL_MAX_DELAY);
+  HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(device_response), HAL_MAX_DELAY);
   return 0;
 }
 
@@ -292,7 +325,8 @@ static int dfu_process_firmware_download(void)
     device_response.addr = 0;
     device_response.size = maxsize;
     device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-    HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    //HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
     return -1;
   }
   else if (firmware_info.start_addr != START_ADDR + RESERVED_SIZE)
@@ -302,7 +336,8 @@ static int dfu_process_firmware_download(void)
     device_response.addr = START_ADDR + RESERVED_SIZE;
     device_response.size = 0;
     device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-    HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    // HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
     return -1;
   }
   else if (firmware_info.start_addr + firmware_info.size != firmware_info.end_addr)
@@ -312,9 +347,12 @@ static int dfu_process_firmware_download(void)
   }
   
   // 利用中断, 并行接收数据
-  HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
-  HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-  HAL_NVIC_EnableIRQ(USART3_IRQn);
+  // HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+  // HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+  // HAL_NVIC_EnableIRQ(USART3_IRQn);
+  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+  HAL_NVIC_EnableIRQ(USART2_IRQn);
   dfu_dma_init();
   uart_front = 0;
   uart_frontaddr = START_ADDR + RESERVED_SIZE;
@@ -379,7 +417,8 @@ static int dfu_process_firmware_download(void)
         // (这不同于HAL_UART_RxCpltCallback里面的CRC错误, 只有收到了完整的数据包, 但CRC校验不通过, 才认定为CRC错误)
         // 也可能是因为用户取消了程序烧写
         printf("Data timeout!\n");
-        status = HAL_UART_Abort(&huart3); // 以阻塞方式强行中止中断或DMA方式的串口传输
+        //status = HAL_UART_Abort(&huart3); // 以阻塞方式强行中止中断或DMA方式的串口传输
+        status = HAL_UART_Abort(&huart2);
         if (status == HAL_OK)
           uart_busy = 0; // 中止成功
         
@@ -428,7 +467,8 @@ static int dfu_process_firmware_download(void)
     device_response.addr = uart_frontaddr;
     device_response.size = 0;
     device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-    HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    // HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
     ret = 0;
   }
   else
@@ -447,7 +487,8 @@ static int dfu_start_transfer(void)
   
   if (uart_busy)
     return -1;
-  if (huart3.gState != HAL_UART_STATE_READY)
+  // if (huart3.gState != HAL_UART_STATE_READY)
+  if (huart2.gState != HAL_UART_STATE_READY)
     return -1; // 如果UART Handle被锁, 则暂不启动传输, 稍后在TxCallback里面重试 (STM32H7就有这种问题)
   if ((uart_rear + 1) % UART_FIFOCNT == uart_front)
     return -1; // FIFO已满
@@ -464,8 +505,11 @@ static int dfu_start_transfer(void)
   device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
   //printf("addr=0x%x, size=%d, checksum=0x%x\n", device_response.addr, device_response.size,
   //        device_response.checksum);
-  HAL_UART_Transmit_DMA(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse));
-  HAL_UART_Receive_DMA(&huart3, uart_data[uart_rear], device_response.size + 1);
+  // HAL_UART_Transmit_DMA(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse));
+  // HAL_UART_Receive_DMA(&huart3, uart_data[uart_rear], device_response.size + 1);
+  HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse));
+  HAL_UART_Receive_DMA(&huart2, uart_data[uart_rear], device_response.size + 1);
+  return 0;
   return 0;
 }
 
@@ -474,7 +518,8 @@ static int dfu_sync(void)
   int i;
   uint8_t sync[16];
   HAL_StatusTypeDef status;
-  status = HAL_UART_Receive(&huart3, sync, sizeof(sync), 1000);
+  //status = HAL_UART_Receive(&huart3, sync, sizeof(sync), 1000);
+  status = HAL_UART_Receive(&huart2, sync, sizeof(sync), 1000);
   if (status == HAL_OK)
   {
     for (i = 0; i < sizeof(sync); i++)
@@ -627,12 +672,29 @@ void USART3_IRQHandler(void)
   HAL_UART_IRQHandler(&huart3);
 }
 
+void DMA1_Channel7_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma17);
+}
+
+void DMA1_Channel6_IRQHandler(void)
+{
+  HAL_DMA_IRQHandler(&hdma16);
+}
+
+void USART2_IRQHandler(void)
+{
+  HAL_UART_IRQHandler(&huart2);
+}
+
 void HAL_UART_ErrorCallback(UART_HandleTypeDef *huart)
 {
   if (huart->Instance == USART1)
     printf("USART1 error: 0x%x!\n", huart->ErrorCode);
   else if (huart->Instance == USART3)
     printf("USART3 error: 0x%x!\n", huart->ErrorCode);
+  else if (huart->Instance == USART2)
+    printf("USART2 error: 0x%x!\n", huart->ErrorCode);
 }
 
 void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)

@@ -45,10 +45,7 @@ void TIM4_IRQHandler(void)
 {
 	u8 val;
 	if(TIM_GetITStatus(TIM4,TIM_IT_Update)) {
-		if (QueueOut(&g_UpdataRxBuff, &val) == 0) {
-			USART_SendData(USART3, val);
-			while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
-		}
+		LED2=!LED2;
 	}
 	TIM_ClearITPendingBit(TIM4,TIM_IT_Update);	
 }
