@@ -25,9 +25,12 @@
 #define USER_VECTOR_START_ADDR 			  (0X807F800)		// user在flash的0x7F800~0x7FFFF，共2Kb
 
 #define READ_BUFFER_SIZE 512
-typedef void (*Runnable)(void);
+#define READ_BUFFER_NUM  20
 uint8_t g_FirmwareWriteBuffer[READ_BUFFER_SIZE] = {0};
 uint8_t g_FirmwareReadBuffer[READ_BUFFER_SIZE] = {0};
+
+static uint8_t uart_data[READ_BUFFER_NUM][READ_BUFFER_SIZE];
+static uint16_t uart_data_len = 0;
 
 uint8_t g_UpgradeMode = 1;
 
@@ -119,7 +122,73 @@ void SD_FirmwareUpgrade(uint8_t bootFlag)
 	f_close(&fp);
 	f_unlink("app.bin");  // 每次启动重新创建日志文件
 }
-extern int g_cnt;
+
+void ReleaseBuffer()
+{
+	int i;
+	for (i = 0; i < READ_BUFFER_NUM; i++) {
+		memset(uart_data[i], 0, READ_BUFFER_SIZE);
+	}
+}
+
+// 将SD卡中的升级文件读到uart_data中
+int GetSdcardUpdateFile(FIL *fp)
+{
+	FRESULT ret;
+	UINT bytesRead = 0;
+	UINT pos = 0;
+
+	// 循环读取文件直到文件结束
+    do {
+        ret = f_read(fp, uart_data[pos], READ_BUFFER_SIZE, &bytesRead);
+        if (ret != FR_OK) {
+			printf("f_read error pos=%d.\r\n", pos);
+            return -1; // 读取出错，退出循环
+        }
+		uart_data_len += bytesRead;
+		pos++;
+    } while(bytesRead > 0); // 如果bytesRead为0，表示已经读取到文件末尾
+
+	return 0;
+}
+
+void SdCardSendHandInfo()
+{
+	int i;
+	uint16_t rxData = 0;
+	// 关闭usart3接收中断
+	USART_ITConfig(USART3, USART_IT_RXNE, DISABLE);
+	USART_GetITStatus(USART3, USART_IT_RXNE);
+	while (1) {
+		for (i = 0; i < 16; i++) {
+			USART_SendData(USART3, 0xab);
+			while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
+		}
+		delay_ms(50);
+		rxData = USART_ReceiveData(USART3);
+		if (rxData == 0xcd) {
+			printf("hand mcu success\r\n");
+			break;
+		}
+	}			
+}
+
+typedef struct
+{
+	uint32_t header;
+	uint32_t size;
+	uint32_t start_addr;
+	uint32_t end_addr;
+	uint32_t entry_point;
+	uint8_t firmware_checksum; // 整个固件的校验和
+	uint8_t header_checksum;
+} FirmwareInfo;
+
+void SdCardSendFirmWareInfo()
+{
+
+}
+
 int main()
 {
 	u32 total, free;
@@ -129,8 +198,9 @@ int main()
 	uint32_t curfreq = 0;
 	char str[32] = {0};
 	char buff[128] = {0};
-	uint32_t bootAddr;
-	uint8_t *bootFlag = NULL;
+	FRESULT fpret = FR_INVALID_PARAMETER;
+	FIL file;
+	int ret = -1;
 
 	// 2. 初始化系统配置
 	SysTick_Init(72);
@@ -141,54 +211,29 @@ int main()
 	USART2_Init(115200);
 	USART3_Init(115200);
 	TIM4_Init(10000,72000-1);  //定时1s
-	// 3. 其他外设初始化
 	OLED_Init();
 	OLED_Clear(); 
-#if 0
-	OLED_ShowString(1, 1, "Start SD check..");
 	TIM3_IC_Init();	
 	my_mem_init(SRAMIN);		//初始化内部内存池
 	while(SD_Init()) { //检测不到SD卡
 		printf("SD Card Error!\r\n");
 		OLED_ShowString(2, 1, "SD err..");
 		delay_ms(500);				
-	}		
+	}	
 	
-	// 4. 文件系统初始化
+	// 文件系统初始化
 	FATFS_Init();				//为fatfs相关变量申请内存	
   	f_mount(fs[0],"0:",1); 		//挂载SD卡
 	while(fatfs_getfree("0:",&total,&free))	{ //得到SD卡的总容量和剩余容量
 		delay_ms(200);
 		LED2=!LED2;
 	}
-	
-	sprintf(buff, "boot APP%d. version:1.01", (*bootFlag == 2) ? 2 : 1);
-	AppLogWrite(buff);
-	memset(buff, 0, sizeof(buff));
-	
-	OLED_ShowString(2, 1, buff);
 	f_unlink("logfile.txt");  // 每次启动重新创建日志文件
-	OLED_ShowString(3, 1, "SD OK..");
-	AppLogWrite("SD Card OK!");
-	sprintf(buff, "SD Card Total Size: %dMB, Free Size: %dMB!", total, free);
-	AppLogWrite(buff);
-	memset(buff, 0, sizeof(buff));
-	
 	delay_ms(1500);
-	// 脱机烧录
-	SD_FirmwareUpgrade(*bootFlag);   
-	
-	// 开始采集PWM波频率
-	OLED_ShowString(4, 1, "PWM check..");
-	AppLogWrite("Start PWM check");
-	
-	delay_ms(1500);
-	OLED_Clear();
+
 	oldfreq = Get_TIM3_CH1_Freq();
 	CalcPlayFreq(oldfreq);
 	OLED_Refresh_Gram();
-	AppLogWrite("Enter in while....");
-#endif
 	printf("In While\r\n");
 	while(1)
 	{
@@ -213,7 +258,29 @@ int main()
 		} else if (g_UpgradeMode == 3) {
 			OLED_ShowString(1, 1, "SDcard   upgrade");
 		}
-		// printf("g_UpgradeMode = %d\r\n", g_UpgradeMode);
+
+		if (g_UpgradeMode == 3) {
+			// 1. 若按键选择SD卡升级，判断sd卡中是否存在升级文件
+			printf("prepare sdcard upgrade\r\n");
+			OLED_ShowString(2, 1, "Start Sdcard upgrade");
+			if (fpret = f_open(&file, "update.bin", FA_READ) != FR_OK) {
+				// 2. 若SD卡中无升级文件，则继续主循环
+				OLED_ShowString(2, 1, "sd no update file");
+				printf("sd no update file\r\n");
+			} else {
+				// 3. 若SD卡中有升级文件，则开始读取文件内容到uart_data中
+				printf("Read sdcard update file\r\n");
+				ret = GetSdcardUpdateFile(&file);
+				printf("file data len=%d\r\n", uart_data_len);
+				// 4. 等待目标机复位，并发送握手信号.同时关闭uart3中断，阻塞接收
+				OLED_ShowString(2, 1, "Please reset mcu");
+				printf("Please reset mcu\r\n");
+				SdCardSendHandInfo();
+				
+
+			}
+		}
+		
 		delay_ms(100);
 		//OLED_Clear();
 	}

@@ -46,6 +46,7 @@ static volatile uint8_t uart_front, uart_rear, uart_busy;
 static volatile uint32_t uart_frontaddr, uart_rearaddr;
 static DeviceResponse device_response;
 static FirmwareInfo firmware_info;
+static int g_UpgradeMode = 0;
 
 #if HARDWARE_CRC
 // 注意: 不是所有的STM32单片机都能使用自定义CRC校验多项式
@@ -103,60 +104,61 @@ static uint8_t calc_crc8(const void *data, int len)
 // 注意文件最后还有DMA中断的函数名也要改
 static void dfu_dma_init(void)
 {
-#if 0
-  if (hdma12.Instance != NULL)
+  if (g_UpgradeMode == 2) {
+    if (hdma17.Instance != NULL)
     return;
-  
-  __HAL_RCC_DMA1_CLK_ENABLE();
-  
-  hdma12.Instance = DMA1_Channel2;
-  hdma12.Init.Direction = DMA_MEMORY_TO_PERIPH; // 注意方向不要写反了(1)
-  hdma12.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-  hdma12.Init.MemInc = DMA_MINC_ENABLE;
-  hdma12.Init.Mode = DMA_NORMAL;
-  hdma12.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma12.Init.PeriphInc = DMA_PINC_DISABLE;
-  hdma12.Init.Priority = DMA_PRIORITY_HIGH;
-  HAL_DMA_Init(&hdma12);
-  __HAL_LINKDMA(&huart3, hdmatx, hdma12); // 注意方向不要写反了(2)
-  
-  hdma13.Instance = DMA1_Channel3;
-  hdma13.Init.Direction = DMA_PERIPH_TO_MEMORY;
-  hdma13.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-  hdma13.Init.MemInc = DMA_MINC_ENABLE;
-  hdma13.Init.Mode = DMA_NORMAL;
-  hdma13.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma13.Init.PeriphInc = DMA_PINC_DISABLE;
-  hdma13.Init.Priority = DMA_PRIORITY_HIGH;
-  HAL_DMA_Init(&hdma13);
-  __HAL_LINKDMA(&huart3, hdmarx, hdma13);
-#endif
-  if (hdma17.Instance != NULL)
-  return;
-  
-  __HAL_RCC_DMA1_CLK_ENABLE();
-  
-  hdma17.Instance = DMA1_Channel7;
-  hdma17.Init.Direction = DMA_MEMORY_TO_PERIPH; // 注意方向不要写反了(1)
-  hdma17.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-  hdma17.Init.MemInc = DMA_MINC_ENABLE;
-  hdma17.Init.Mode = DMA_NORMAL;
-  hdma17.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma17.Init.PeriphInc = DMA_PINC_DISABLE;
-  hdma17.Init.Priority = DMA_PRIORITY_HIGH;
-  HAL_DMA_Init(&hdma17);
-  __HAL_LINKDMA(&huart2, hdmatx, hdma17); // 注意方向不要写反了(2)
-  
-  hdma16.Instance = DMA1_Channel6;
-  hdma16.Init.Direction = DMA_PERIPH_TO_MEMORY;
-  hdma16.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
-  hdma16.Init.MemInc = DMA_MINC_ENABLE;
-  hdma16.Init.Mode = DMA_NORMAL;
-  hdma16.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
-  hdma16.Init.PeriphInc = DMA_PINC_DISABLE;
-  hdma16.Init.Priority = DMA_PRIORITY_HIGH;
-  HAL_DMA_Init(&hdma16);
-  __HAL_LINKDMA(&huart2, hdmarx, hdma16);
+    
+    __HAL_RCC_DMA1_CLK_ENABLE();
+    
+    hdma17.Instance = DMA1_Channel7;
+    hdma17.Init.Direction = DMA_MEMORY_TO_PERIPH; // 注意方向不要写反了(1)
+    hdma17.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma17.Init.MemInc = DMA_MINC_ENABLE;
+    hdma17.Init.Mode = DMA_NORMAL;
+    hdma17.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma17.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma17.Init.Priority = DMA_PRIORITY_HIGH;
+    HAL_DMA_Init(&hdma17);
+    __HAL_LINKDMA(&huart2, hdmatx, hdma17); // 注意方向不要写反了(2)
+    
+    hdma16.Instance = DMA1_Channel6;
+    hdma16.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma16.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma16.Init.MemInc = DMA_MINC_ENABLE;
+    hdma16.Init.Mode = DMA_NORMAL;
+    hdma16.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma16.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma16.Init.Priority = DMA_PRIORITY_HIGH;
+    HAL_DMA_Init(&hdma16);
+    __HAL_LINKDMA(&huart2, hdmarx, hdma16);
+  } else if (g_UpgradeMode == 3) {
+    if (hdma12.Instance != NULL)
+      return;
+    
+    __HAL_RCC_DMA1_CLK_ENABLE();
+    
+    hdma12.Instance = DMA1_Channel2;
+    hdma12.Init.Direction = DMA_MEMORY_TO_PERIPH; // 注意方向不要写反了(1)
+    hdma12.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma12.Init.MemInc = DMA_MINC_ENABLE;
+    hdma12.Init.Mode = DMA_NORMAL;
+    hdma12.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma12.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma12.Init.Priority = DMA_PRIORITY_HIGH;
+    HAL_DMA_Init(&hdma12);
+    __HAL_LINKDMA(&huart3, hdmatx, hdma12); // 注意方向不要写反了(2)
+    
+    hdma13.Instance = DMA1_Channel3;
+    hdma13.Init.Direction = DMA_PERIPH_TO_MEMORY;
+    hdma13.Init.MemDataAlignment = DMA_MDATAALIGN_BYTE;
+    hdma13.Init.MemInc = DMA_MINC_ENABLE;
+    hdma13.Init.Mode = DMA_NORMAL;
+    hdma13.Init.PeriphDataAlignment = DMA_PDATAALIGN_BYTE;
+    hdma13.Init.PeriphInc = DMA_PINC_DISABLE;
+    hdma13.Init.Priority = DMA_PRIORITY_HIGH;
+    HAL_DMA_Init(&hdma13);
+    __HAL_LINKDMA(&huart3, hdmarx, hdma13);
+  }
 }
 
 static int dfu_process(void)
@@ -169,8 +171,11 @@ static int dfu_process(void)
   printf("Enter DFU mode 111!\n");
   // 发送成功进入DFU模式的回应
   memset(sync, 0xcd, sizeof(sync));
-  //HAL_UART_Transmit(&huart3, sync, sizeof(sync), HAL_MAX_DELAY);
-  HAL_UART_Transmit(&huart2, sync, sizeof(sync), HAL_MAX_DELAY);
+  if (g_UpgradeMode == 2) {
+    HAL_UART_Transmit(&huart2, sync, sizeof(sync), HAL_MAX_DELAY);
+  } else if (g_UpgradeMode == 3) {
+    HAL_UART_Transmit(&huart3, sync, sizeof(sync), HAL_MAX_DELAY);
+  }
   printf("Enter DFU mode!\n");
   
   // 接收请求信息
@@ -179,8 +184,12 @@ static int dfu_process(void)
   {
     // 跳过冗余的0xab同步信号, 寻找头部字段
     memset(uart_data[0], 0, UART_MTU);
-    //HAL_UART_Receive(&huart3, uart_data[0], UART_MTU, 10000);
-    HAL_UART_Receive(&huart2, uart_data[0], UART_MTU, 10000);
+    if (g_UpgradeMode == 2) {
+      HAL_UART_Receive(&huart2, uart_data[0], UART_MTU, 10000);
+    } else if (g_UpgradeMode == 3) {
+      HAL_UART_Receive(&huart3, uart_data[0], UART_MTU, 10000);
+    }
+    
     for (j = 0; j < UART_MTU; j++)
     {
       if (uart_data[0][j] != 0xab)
@@ -232,8 +241,11 @@ static int dfu_process(void)
       device_response.addr = 0xffffffff;
       device_response.size = 0xffffffff;
       device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-      //HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
-      HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+      if (g_UpgradeMode == 2) {
+        HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+      } else if (g_UpgradeMode == 3) {
+        HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+      }
     }
   } while (!header_valid);
   
@@ -295,8 +307,11 @@ static int dfu_process_crc_config(const CRCConfig *config)
   device_response.addr = (uintptr_t)value;
   device_response.size = (memcmp((void *)START_ADDR, buffer, sizeof(buffer)) == 0);
   device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-  // HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(device_response), HAL_MAX_DELAY);
-  HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(device_response), HAL_MAX_DELAY);
+  if (g_UpgradeMode == 2) {
+    HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(device_response), HAL_MAX_DELAY);
+  } else if (g_UpgradeMode == 3) {
+    HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(device_response), HAL_MAX_DELAY);
+  }
   return 0;
 }
 
@@ -325,8 +340,11 @@ static int dfu_process_firmware_download(void)
     device_response.addr = 0;
     device_response.size = maxsize;
     device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-    //HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
-    HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    if (g_UpgradeMode == 2) {
+      HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    } else if (g_UpgradeMode == 3) {
+      HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    }
     return -1;
   }
   else if (firmware_info.start_addr != START_ADDR + RESERVED_SIZE)
@@ -336,8 +354,11 @@ static int dfu_process_firmware_download(void)
     device_response.addr = START_ADDR + RESERVED_SIZE;
     device_response.size = 0;
     device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-    // HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
-    HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    if (g_UpgradeMode == 2) {
+      HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    } else if (g_UpgradeMode == 3) {
+      HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    }
     return -1;
   }
   else if (firmware_info.start_addr + firmware_info.size != firmware_info.end_addr)
@@ -347,12 +368,15 @@ static int dfu_process_firmware_download(void)
   }
   
   // 利用中断, 并行接收数据
-  // HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
-  // HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
-  // HAL_NVIC_EnableIRQ(USART3_IRQn);
-  HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
-  HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
-  HAL_NVIC_EnableIRQ(USART2_IRQn);
+  if (g_UpgradeMode == 2) {
+    HAL_NVIC_EnableIRQ(DMA1_Channel7_IRQn);
+    HAL_NVIC_EnableIRQ(DMA1_Channel6_IRQn);
+    HAL_NVIC_EnableIRQ(USART2_IRQn);
+  } else if (g_UpgradeMode == 3) {
+    HAL_NVIC_EnableIRQ(DMA1_Channel2_IRQn);
+    HAL_NVIC_EnableIRQ(DMA1_Channel3_IRQn);
+    HAL_NVIC_EnableIRQ(USART3_IRQn);
+  }
   dfu_dma_init();
   uart_front = 0;
   uart_frontaddr = START_ADDR + RESERVED_SIZE;
@@ -417,8 +441,11 @@ static int dfu_process_firmware_download(void)
         // (这不同于HAL_UART_RxCpltCallback里面的CRC错误, 只有收到了完整的数据包, 但CRC校验不通过, 才认定为CRC错误)
         // 也可能是因为用户取消了程序烧写
         printf("Data timeout!\n");
-        //status = HAL_UART_Abort(&huart3); // 以阻塞方式强行中止中断或DMA方式的串口传输
-        status = HAL_UART_Abort(&huart2);
+        if (g_UpgradeMode == 2) {
+          status = HAL_UART_Abort(&huart2);
+        } else if (g_UpgradeMode == 3) {
+          status = HAL_UART_Abort(&huart3);
+        }
         if (status == HAL_OK)
           uart_busy = 0; // 中止成功
         
@@ -459,16 +486,26 @@ static int dfu_process_firmware_download(void)
   
   // 结束请求
   assert_param(!uart_busy);
-  HAL_NVIC_DisableIRQ(DMA1_Channel2_IRQn);
-  HAL_NVIC_DisableIRQ(DMA1_Channel3_IRQn);
-  HAL_NVIC_DisableIRQ(USART3_IRQn);
+  if (g_UpgradeMode == 2) {
+    HAL_NVIC_DisableIRQ(DMA1_Channel7_IRQn);
+    HAL_NVIC_DisableIRQ(DMA1_Channel6_IRQn);
+    HAL_NVIC_DisableIRQ(USART2_IRQn);
+  } else if (g_UpgradeMode == 3) {
+    HAL_NVIC_DisableIRQ(DMA1_Channel2_IRQn);
+    HAL_NVIC_DisableIRQ(DMA1_Channel3_IRQn);
+    HAL_NVIC_DisableIRQ(USART3_IRQn);
+  }
+ 
   if (uart_frontaddr == firmware_info.end_addr)
   {
     device_response.addr = uart_frontaddr;
     device_response.size = 0;
     device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
-    // HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
-    HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    if (g_UpgradeMode == 2) {
+      HAL_UART_Transmit(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    } else if (g_UpgradeMode == 3) {
+      HAL_UART_Transmit(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse), HAL_MAX_DELAY);
+    }
     ret = 0;
   }
   else
@@ -487,9 +524,14 @@ static int dfu_start_transfer(void)
   
   if (uart_busy)
     return -1;
-  // if (huart3.gState != HAL_UART_STATE_READY)
-  if (huart2.gState != HAL_UART_STATE_READY)
-    return -1; // 如果UART Handle被锁, 则暂不启动传输, 稍后在TxCallback里面重试 (STM32H7就有这种问题)
+  if (g_UpgradeMode == 2) {
+    if (huart2.gState != HAL_UART_STATE_READY)
+      return -1; // 如果UART Handle被锁, 则暂不启动传输, 稍后在TxCallback里面重试 (STM32H7就有这种问题)
+  } else if (g_UpgradeMode == 3) {
+    if (huart3.gState != HAL_UART_STATE_READY)
+      return -1; // 如果UART Handle被锁, 则暂不启动传输, 稍后在TxCallback里面重试 (STM32H7就有这种问题)
+  }
+  
   if ((uart_rear + 1) % UART_FIFOCNT == uart_front)
     return -1; // FIFO已满
   
@@ -505,30 +547,47 @@ static int dfu_start_transfer(void)
   device_response.checksum = calc_crc8(&device_response, sizeof(DeviceResponse) - 1);
   //printf("addr=0x%x, size=%d, checksum=0x%x\n", device_response.addr, device_response.size,
   //        device_response.checksum);
-  // HAL_UART_Transmit_DMA(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse));
-  // HAL_UART_Receive_DMA(&huart3, uart_data[uart_rear], device_response.size + 1);
-  HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse));
-  HAL_UART_Receive_DMA(&huart2, uart_data[uart_rear], device_response.size + 1);
-  return 0;
+  if (g_UpgradeMode == 2) {
+    HAL_UART_Transmit_DMA(&huart2, (uint8_t *)&device_response, sizeof(DeviceResponse));
+    HAL_UART_Receive_DMA(&huart2, uart_data[uart_rear], device_response.size + 1);
+  } else if (g_UpgradeMode == 3) {
+    HAL_UART_Transmit_DMA(&huart3, (uint8_t *)&device_response, sizeof(DeviceResponse));
+    HAL_UART_Receive_DMA(&huart3, uart_data[uart_rear], device_response.size + 1);
+  }
   return 0;
 }
 
 static int dfu_sync(void)
 {
   int i;
-  uint8_t sync[16];
+  uint8_t sync2[16];
+  uint8_t sync3[16];
   HAL_StatusTypeDef status;
-  //status = HAL_UART_Receive(&huart3, sync, sizeof(sync), 1000);
-  status = HAL_UART_Receive(&huart2, sync, sizeof(sync), 1000);
+  status = HAL_UART_Receive(&huart2, sync2, sizeof(sync2), 1000);
   if (status == HAL_OK)
   {
-    for (i = 0; i < sizeof(sync); i++)
+    for (i = 0; i < sizeof(sync2); i++)
     {
-      if (sync[i] != 0xab)
+      if (sync2[i] != 0xab)
         break;
     }
-    if (i == sizeof(sync))
+    if (i == sizeof(sync2)) {
+      g_UpgradeMode = 2;
       return 0;
+    }
+  }
+
+  status = HAL_UART_Receive(&huart3, sync3, sizeof(sync3), 1000);
+  if (status == HAL_OK) {
+    for (i = 0; i < sizeof(sync3); i++)
+    {
+      if (sync3[i] != 0xab)
+        break;
+    }
+    if (i == sizeof(sync3)) {
+      g_UpgradeMode = 3;
+      return 0;
+    }
   }
   return -1;
 }
@@ -628,6 +687,7 @@ int main(void)
       ret = dfu_sync(); // 接收主机的DFU请求
       if (ret == 0)
       {
+        printf("the update source is usart%d\n", g_UpgradeMode);
         // 成功进入DFU模式
         ret = dfu_process(); // DFU处理
 

@@ -27,25 +27,23 @@ Project File Date:  03/24/2024
 <h2>Output:</h2>
 Build target 'Target 1'
 compiling main.c...
-main.c(513): warning:  #111-D: statement is unreachable
-    return 0;
-main.c(607): warning:  #177-D: variable "dfuSuccessFlag" was declared but never referenced
+main.c(666): warning:  #177-D: variable "dfuSuccessFlag" was declared but never referenced
     int dfuSuccessFlag = 0;
-main.c(608): warning:  #177-D: variable "pBootFlag" was declared but never referenced
+main.c(667): warning:  #177-D: variable "pBootFlag" was declared but never referenced
     uint8_t *pBootFlag = NULL;
-main.c(609): warning:  #177-D: variable "erase" was declared but never referenced
+main.c(668): warning:  #177-D: variable "erase" was declared but never referenced
     FLASH_EraseInitTypeDef erase;
-main.c(610): warning:  #177-D: variable "err" was declared but never referenced
+main.c(669): warning:  #177-D: variable "err" was declared but never referenced
     uint32_t err;
-main.c(536): warning:  #177-D: function "iwdg_init" was declared but never referenced
+main.c(595): warning:  #177-D: function "iwdg_init" was declared but never referenced
   static void iwdg_init(void)
-main.c: 6 warnings, 0 errors
+main.c: 5 warnings, 0 errors
 linking...
-Program Size: Code=12296 RO-data=436 RW-data=40 ZI-data=20096  
+Program Size: Code=12832 RO-data=436 RW-data=44 ZI-data=20092  
 FromELF: creating hex file...
 After Build - User command #1: cmd.exe /C copy /Y .\Objects\bootloader.hex ..\..\output\目标机\bootloader.hex
 已复制         1 个文件。
-".\Objects\bootloader.axf" - 0 Error(s), 6 Warning(s).
+".\Objects\bootloader.axf" - 0 Error(s), 5 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\下位机\目标机\bootloadr\RTE
