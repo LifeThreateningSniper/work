@@ -1,6 +1,7 @@
 --cpu Cortex-M3
 ".\objects\main.o"
 ".\objects\common.o"
+".\objects\oled.o"
 ".\objects\stm32f1xx_hal.o"
 ".\objects\stm32f1xx_hal_adc.o"
 ".\objects\stm32f1xx_hal_adc_ex.o"

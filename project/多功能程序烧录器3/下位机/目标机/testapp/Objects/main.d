@@ -58,4 +58,5 @@
 .\objects\main.o: .\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_pcd_ex.h
 .\objects\main.o: .\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_hcd.h
 .\objects\main.o: .\STM32F1xx_HAL_Driver\Inc\stm32f1xx_hal_mmc.h
+.\objects\main.o: .\oled\oled.h
 .\objects\main.o: common.h

@@ -6,56 +6,25 @@
 */
 #include <stdio.h>
 #include <stm32f1xx.h>
+#include "oled.h"
 #include "common.h"
-
-IWDG_HandleTypeDef hiwdg;
-
-static void iwdg_init(void)
-{
-  hiwdg.Instance = IWDG;
-  hiwdg.Init.Prescaler = IWDG_PRESCALER_32;
-  hiwdg.Init.Reload = 2499; // 超时时间为(2499+1)*0.8ms=2s
-  HAL_IWDG_Init(&hiwdg);
-}
-
-static void reset_check(void)
-{
-  int i;
-  uint8_t cmd[2];
-  HAL_StatusTypeDef status;
-  
-  if (__HAL_UART_GET_FLAG(&huart1, UART_FLAG_RXNE) != RESET)
-  {
-    status = HAL_UART_Receive(&huart1, cmd, sizeof(cmd), 200);
-    if (status == HAL_OK)
-    {
-      if (cmd[0] == 0xab && cmd[1] == 0xab)
-      {
-        for (i = 0; i < 2; i++)
-        {
-          HAL_IWDG_Refresh(&hiwdg);
-          HAL_Delay(1000);
-        }
-        HAL_NVIC_SystemReset();
-      }
-    }
-  }
-}
 
 int main(void)
 {
 	uint32_t cnt = 0;
-  uint32_t last, now, source;
   
   HAL_Init();
   clock_init();
   usart_init(115200);
+	OLED_Init();
+  OLED_Clear();
   printf("SystemCoreClock=%u\n", SystemCoreClock);
   printf("In While\n");
   
   while (1)
   {
 			printf("V3.00 apptest, cnt=%d\n", cnt);
+      OLED_ShowString(2, 1, "V3.00 apptest!");    //1行3列显示字符串HelloWorld!
 			HAL_Delay(1000);
 			cnt++;
   }
