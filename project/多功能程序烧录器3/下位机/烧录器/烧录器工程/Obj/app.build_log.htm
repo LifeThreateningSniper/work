@@ -26,7 +26,26 @@ Project File Date:  03/25/2024
 
 <h2>Output:</h2>
 Build target 'Target 1'
-".\Obj\app.axf" - 0 Error(s), 0 Warning(s).
+compiling main.c...
+User\main.c(268): warning:  #69-D: integer conversion resulted in truncation
+        TIM4_Init(10000,72000-1);  //定时1s
+User\main.c(336): warning:  #188-D: enumerated type mixed with another type
+                        if (fpret = f_open(&file, "update.bin", FA_READ) != FR_OK) {
+User\main.c(336): warning:  #1293-D: assignment in condition
+                        if (fpret = f_open(&file, "update.bin", FA_READ) != FR_OK) {
+User\main.c(249): warning:  #177-D: variable "val" was declared but never referenced
+        u8 val;
+User\main.c(255): warning:  #177-D: variable "buff" was declared but never referenced
+        char buff[128] = {0};
+User\main.c(256): warning:  #550-D: variable "fpret" was set but never used
+        FRESULT fpret = FR_INVALID_PARAMETER;
+User\main.c(258): warning:  #550-D: variable "ret" was set but never used
+        int ret = -1;
+User\main.c: 7 warnings, 0 errors
+linking...
+Program Size: Code=29818 RO-data=176974 RW-data=100 ZI-data=62052  
+FromELF: creating hex file...
+".\Obj\app.axf" - 0 Error(s), 7 Warning(s).
 
 <h2>Collection of Component include folders:</h2>
   E:\项目\多功能程序烧录器\5. 源码\work\project\多功能程序烧录器3\下位机\烧录器\烧录器工程\RTE

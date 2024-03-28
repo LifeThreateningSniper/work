@@ -431,7 +431,7 @@ void OLED_DrawClear(void)
 }
 
 #define PWM_Y_LOW 56
-#define PWM_Y_HIGH 32
+#define PWM_Y_HIGH 48
 
 void OLED_DrawPwm(int x)
 {

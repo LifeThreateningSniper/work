@@ -24,6 +24,10 @@
 #define APP2_VECTOR_START_ADDR            (0x8042000)  	// app1在flash的0x42400~0x7F7FF，从264KB到510KB，共计使用246KB
 #define USER_VECTOR_START_ADDR 			  (0X807F800)		// user在flash的0x7F800~0x7FFFF，共2Kb
 
+#define HEADER_FIRMWARE_INFO 0x32f103c8
+#define POLYNOMIAL_CRC8 0x107
+
+
 #define READ_BUFFER_SIZE 512
 #define READ_BUFFER_NUM  20
 uint8_t g_FirmwareWriteBuffer[READ_BUFFER_SIZE] = {0};
@@ -129,6 +133,7 @@ void ReleaseBuffer()
 	for (i = 0; i < READ_BUFFER_NUM; i++) {
 		memset(uart_data[i], 0, READ_BUFFER_SIZE);
 	}
+	uart_data_len = 0 ;
 }
 
 // 将SD卡中的升级文件读到uart_data中
@@ -158,18 +163,21 @@ void SdCardSendHandInfo()
 	uint16_t rxData = 0;
 	// 关闭usart3接收中断
 	USART_ITConfig(USART3, USART_IT_RXNE, DISABLE);
-	USART_GetITStatus(USART3, USART_IT_RXNE);
+	//USART_GetITStatus(USART3, USART_IT_RXNE);
 	while (1) {
 		for (i = 0; i < 16; i++) {
 			USART_SendData(USART3, 0xab);
 			while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
 		}
 		delay_ms(50);
-		rxData = USART_ReceiveData(USART3);
-		if (rxData == 0xcd) {
-			printf("hand mcu success\r\n");
-			break;
+		if(USART_GetFlagStatus(USART3, USART_IT_RXNE) != RESET) {
+			rxData = USART_ReceiveData(USART3);
+			if (rxData == 0xcd) {
+				printf("hand mcu success\r\n");
+				break;
+			}
 		}
+		printf("wait mcu hand ack\r\n");
 	}			
 }
 
@@ -184,9 +192,55 @@ typedef struct
 	uint8_t header_checksum;
 } FirmwareInfo;
 
-void SdCardSendFirmWareInfo()
+static uint8_t calc_crc8(const void *data, int len)
 {
+	const uint8_t *p = data;
+	int i, j;
+	uint16_t temp = 0;
 
+	if (len != 0)
+		temp = p[0] << 8;
+
+	for (i = 1; i <= len; i++)
+	{
+		if (i != len)
+			temp |= p[i];
+		for (j = 0; j < 8; j++)
+		{
+			if (temp & 0x8000)
+				temp ^= POLYNOMIAL_CRC8 << 7;
+			temp <<= 1;
+		}
+	}
+	return temp >> 8;
+}
+
+void SdCardSendFirmWare()
+{
+	FirmwareInfo info;
+	uint8_t *p = &uart_data[0][0];
+	uint8_t *tmp = NULL;
+	uint16_t j;
+
+	// 先发送固件信息
+	info.header = HEADER_FIRMWARE_INFO;
+	info.size = uart_data_len;
+	info.start_addr = APP1_VECTOR_START_ADDR;
+	info.end_addr = APP1_VECTOR_START_ADDR + uart_data_len;
+	info.entry_point = APP1_VECTOR_START_ADDR + 0x131;
+	info.firmware_checksum = calc_crc8(p, uart_data_len);
+	info.header_checksum = 0;
+	tmp = (uint8_t *)&info;
+	for (j =0; j < sizeof(info);j++) {
+		USART_SendData(USART3, *(tmp + j));
+		while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
+	}
+
+	p = &uart_data[0][0];
+	for (j = 0; j < uart_data_len; j++) {
+		USART_SendData(USART3, *(p + j));
+		while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
+	}
 }
 
 int main()
@@ -197,6 +251,7 @@ int main()
 	uint32_t oldfreq = 0;
 	uint32_t curfreq = 0;
 	char str[32] = {0};
+	char sd_buff[32] = {0};
 	char buff[128] = {0};
 	FRESULT fpret = FR_INVALID_PARAMETER;
 	FIL file;
@@ -232,11 +287,25 @@ int main()
 	delay_ms(1500);
 
 	oldfreq = Get_TIM3_CH1_Freq();
+	sprintf(str, "freq: %dHZ", oldfreq);
+	OLED_ShowString(3, 1, str);
 	CalcPlayFreq(oldfreq);
 	OLED_Refresh_Gram();
-	printf("In While\r\n");
+	printf("In  While\r\n");
 	while(1)
 	{
+		curfreq = Get_TIM3_CH1_Freq();
+		if (curfreq != oldfreq) {
+			//OLED_Clear();
+			OLED_DrawClear();
+			CalcPlayFreq(oldfreq);
+			OLED_Refresh_Gram(); // 定时刷新屏幕
+			sprintf(str, "freq: %dHZ", curfreq);
+			OLED_ShowString(3, 1, str);
+
+			oldfreq = curfreq;
+		}
+
 		key = KEY_Scan(0);
 		switch (key) {
 			case KEY_UP_PRESS:
@@ -258,6 +327,7 @@ int main()
 		} else if (g_UpgradeMode == 3) {
 			OLED_ShowString(1, 1, "SDcard   upgrade");
 		}
+		OLED_ShowString(2, 1, sd_buff);
 
 		if (g_UpgradeMode == 3) {
 			// 1. 若按键选择SD卡升级，判断sd卡中是否存在升级文件
@@ -275,9 +345,16 @@ int main()
 				// 4. 等待目标机复位，并发送握手信号.同时关闭uart3中断，阻塞接收
 				OLED_ShowString(2, 1, "Please reset mcu");
 				printf("Please reset mcu\r\n");
-				SdCardSendHandInfo();
-				
-
+				SdCardSendHandInfo();  // 死等对方回复ack
+				OLED_ShowString(2, 1, "sd update hand  ");
+				// 5. 告诉目标机此次升级的固件信息，和固件
+				SdCardSendFirmWare();
+				sprintf(sd_buff, "%s", "sd update finish");
+				printf("update mcu secuss\r\n");
+				// 6. 清空缓冲区
+				ReleaseBuffer();
+				USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
+				g_UpgradeMode = 1;
 			}
 		}
 		
