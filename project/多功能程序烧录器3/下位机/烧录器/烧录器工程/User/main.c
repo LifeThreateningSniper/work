@@ -57,13 +57,16 @@ void AppLogWrite(char *str)
 	FRESULT fr;
 	FIL fil;
 	
-	printf("%s\r\n", str);
-	fr = f_open(&fil, "logfile.txt", FA_WRITE | FA_OPEN_ALWAYS);
+	// printf("%s\r\n", str);
+	fr = f_open(&fil, "logfile.txt", FA_OPEN_EXISTING | FA_WRITE);
 	if (fr == FR_OK) {
 		/* Seek to end of the file to append data */
 		fr = f_lseek(&fil, f_size(&fil));
-		if (fr != FR_OK)
-				f_close(&fil);
+		if (fr != FR_OK) {
+			f_close(&fil);
+			return;
+		}
+				
   }
 	f_printf(&fil, str);
 	f_printf(&fil, " \n");
@@ -215,12 +218,37 @@ static uint8_t calc_crc8(const void *data, int len)
 	return temp >> 8;
 }
 
+typedef __packed struct
+{
+  uint32_t addr;
+  uint32_t size;
+  uint8_t checksum;
+} DeviceResponse;
+
+void SdCardReciveDataCrc(DeviceResponse *resp)
+{
+	uint8_t buf[9] = 0;
+	uint8_t cnt = 0;
+	uint8_t pos = 0;
+	while (cnt < 9) {
+		if(USART_GetFlagStatus(USART3, USART_IT_RXNE) != RESET) {
+			buf[pos] = USART_ReceiveData(USART3);
+			pos++;
+			cnt++;
+			//printf("cnt=%d, rep=%d\r\n", cnt, sizeof(DeviceResponse));
+		}
+		
+	}
+	memcpy(resp, buf, sizeof(DeviceResponse));
+}
+
 void SdCardSendFirmWare()
 {
 	FirmwareInfo info;
 	uint8_t *p = &uart_data[0][0];
 	uint8_t *tmp = NULL;
 	uint16_t j;
+	DeviceResponse rep = {0};
 
 	// 先发送固件信息
 	info.header = HEADER_FIRMWARE_INFO;
@@ -235,12 +263,30 @@ void SdCardSendFirmWare()
 		USART_SendData(USART3, *(tmp + j));
 		while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
 	}
-
+	OLED_ShowString(2, 1, "send bin .....  ");
+	delay_ms(10000);
 	p = &uart_data[0][0];
-	for (j = 0; j < uart_data_len; j++) {
-		USART_SendData(USART3, *(p + j));
+	while (1) {
+		SdCardReciveDataCrc(&rep);
+		// printf("addr=0x%x, size=%d, checksum=0x%x\r\n", rep.addr,
+  					// rep.size, rep.checksum);
+		if (rep.size == 0) {
+			break;
+		} else if (rep.addr == 0xffffffff && rep.size == 0xffffffff) {
+			continue;
+		}
+		for (j = 0; j < rep.size; j++) {
+			//printf("%x ", *(p + j));
+			USART_SendData(USART3, *(p + j));
+			while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
+		}
+		p += rep.size;
+		delay_ms(100);
+		USART_SendData(USART3, 0);
 		while(USART_GetFlagStatus(USART3,USART_FLAG_TC) != SET);
 	}
+	
+
 }
 
 int main()
@@ -291,7 +337,7 @@ int main()
 	OLED_ShowString(3, 1, str);
 	CalcPlayFreq(oldfreq);
 	OLED_Refresh_Gram();
-	printf("In  While\r\n");
+	// AppLogWrite("In  While");
 	while(1)
 	{
 		curfreq = Get_TIM3_CH1_Freq();
@@ -302,6 +348,7 @@ int main()
 			OLED_Refresh_Gram(); // 定时刷新屏幕
 			sprintf(str, "freq: %dHZ", curfreq);
 			OLED_ShowString(3, 1, str);
+			//AppLogWrite(str);
 
 			oldfreq = curfreq;
 		}
@@ -310,12 +357,15 @@ int main()
 		switch (key) {
 			case KEY_UP_PRESS:
 				g_UpgradeMode = 1;
+				// AppLogWrite("update mode is wireless");
 				break;
 			case KEY0_PRESS:
 				g_UpgradeMode = 2;
+				// AppLogWrite("update mode is wire");
 				break;
 			case KEY1_PRESS:
 				g_UpgradeMode =3;
+				// AppLogWrite("update mode is sdcard");
 				break;
 			default:
 				break;
@@ -335,8 +385,10 @@ int main()
 			OLED_ShowString(2, 1, "Start Sdcard upgrade");
 			if (fpret = f_open(&file, "update.bin", FA_READ) != FR_OK) {
 				// 2. 若SD卡中无升级文件，则继续主循环
-				OLED_ShowString(2, 1, "sd no update file");
+				OLED_ShowString(2, 1, "sd no updatefile");
 				printf("sd no update file\r\n");
+				delay_ms(2000);
+				g_UpgradeMode = 1;
 			} else {
 				// 3. 若SD卡中有升级文件，则开始读取文件内容到uart_data中
 				printf("Read sdcard update file\r\n");
@@ -356,6 +408,7 @@ int main()
 				USART_ITConfig(USART3, USART_IT_RXNE, ENABLE);
 				g_UpgradeMode = 1;
 			}
+			f_close(&file);
 		}
 		
 		delay_ms(100);

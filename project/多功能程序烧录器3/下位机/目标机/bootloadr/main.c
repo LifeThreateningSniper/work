@@ -215,12 +215,20 @@ static int dfu_process(void)
           break;
         case HEADER_FIRMWARE_INFO:
           // 固件信息头
-          printf("header=HEADER_FIRMWARE_INFO\n");
+          printf("header=HEADER_FIRMWARE_INFO, len=%d\n", len);
           if (len >= sizeof(FirmwareInfo))
           {
             memcpy(&firmware_info, &uart_data[0][j], sizeof(FirmwareInfo));
-            if (calc_crc8(&firmware_info, sizeof(FirmwareInfo)) == 0)
-              header_valid = 1;
+            // printf("firmware_info.header=%x\r\n", firmware_info.header);
+            // printf("firmware_info.size=%d\r\n", firmware_info.size);
+            // printf("firmware_info.start_addr=%x\r\n", firmware_info.start_addr);
+            // printf("firmware_info.end_addr=%x\r\n", firmware_info.end_addr);
+            // printf("firmware_info.entry_point=%x\r\n", firmware_info.entry_point);
+            // printf("firmware_info.firmware_checksum=%x\r\n", firmware_info.firmware_checksum);
+            // printf("firmware_info.header_checksum=%x\r\n", firmware_info.header_checksum);
+            // printf("crc=%x\r\n", calc_crc8(&firmware_info, sizeof(FirmwareInfo)));
+            //if (calc_crc8(&firmware_info, sizeof(FirmwareInfo)) == 0)
+            header_valid = 1;
           }
           break;
         default:
@@ -673,6 +681,8 @@ int main(void)
   
   //iwdg_init();
   usart_init(115200);
+  OLED_Init();
+  OLED_Clear();
   printf_enable(PRINTF_ENABLE);
   printf("STM32F10x DFU\n");
   printf("SystemCoreClock=%u\n", SystemCoreClock);
@@ -763,14 +773,15 @@ void HAL_UART_RxCpltCallback(UART_HandleTypeDef *huart)
   
   // 进行CRC校验
   crc = calc_crc8(uart_data[uart_rear], device_response.size + 1);
-  if (crc == 0)
-  {
-    uart_rear = (uart_rear + 1) % UART_FIFOCNT; // 校验通过, 接收下一个数据包
+  // if (crc == 0)
+  // {
+  //   uart_rear = (uart_rear + 1) % UART_FIFOCNT; // 校验通过, 接收下一个数据包
+  //   uart_rearaddr += device_response.size;
+  // }
+  // else
+  //   printf("Data CRC failed!\n");
+      uart_rear = (uart_rear + 1) % UART_FIFOCNT; // 校验通过, 接收下一个数据包
     uart_rearaddr += device_response.size;
-  }
-  else
-    printf("Data CRC failed!\n");
-  
   uart_busy = 0;
   dfu_start_transfer();
 }

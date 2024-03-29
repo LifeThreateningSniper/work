@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>STM32F103xE USE_FULL_ASSERT USE_HAL_DRIVER</Define>
               <Undefine></Undefine>
-              <IncludePath>.\STM32F1xx_HAL_Driver;.\STM32F1xx_HAL_Driver\Inc</IncludePath>
+              <IncludePath>.\STM32F1xx_HAL_Driver;.\STM32F1xx_HAL_Driver\Inc;.\oled</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -417,6 +417,11 @@
               <FileName>common.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\common.c</FilePath>
+            </File>
+            <File>
+              <FileName>oled.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\oled\oled.c</FilePath>
             </File>
           </Files>
         </Group>
