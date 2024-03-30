@@ -1,0 +1,25 @@
+1、上位机一旦打开（使用）与下位机连接的串口，下位机（烧录器）死机问题  （定位时长4小时）
+	上位机打开串口的代码：open_port-》hPort = CreateFile(name, GENERIC_READ | GENERIC_WRITE, 0, NULL, OPEN_EXISTING, 0, NULL);
+	下位机死机现象：心跳灯不再闪烁
+	原因：单片机的串口使用的是CH340的TLL转USB，其DTR管脚连接者mcu的复位。一旦上位机开启了DTR，就会造成MCU复位。给人一种mcu跑飞的假象。
+	解决方案：上位机打开串口后，关闭DTR和RTS
+				dcb.DCBlength = sizeof(DCB);
+				GetCommState(hPort, &dcb);
+				dcb.BaudRate = CBR_115200;
+				dcb.ByteSize = 8;
+				dcb.Parity = NOPARITY;
+				dcb.StopBits = ONESTOPBIT;
+				dcb.fRtsControl = RTS_CONTROL_DISABLE;  // 关闭RTS
+				dcb.fDtrControl = DTR_CONTROL_DISABLE;  // 关闭DTR
+				SetCommState(hPort, &dcb);
+2、单片机1（烧录器）的usart3与单片机2（目标机）的usart3通过杜邦线互连。串口通信失败
+	现象：单片机1一直再给单片机2发送数据，单片机2无法收取到数据
+	解决：关闭单片机2串口RX管脚的上拉配置
+			  gpio.Mode = GPIO_MODE_INPUT;
+			  gpio.Pin = GPIO_PIN_11;
+			  // gpio.Pull = GPIO_PULLUP;  // 关闭上拉，解决烧录器与目标接的串口通信失败问题
+			  HAL_GPIO_Init(GPIOB, &gpio);
+3、上位机发数据给单片机usart1，单片机usart1收到数据后给usart3发出去。如果上位机频繁发数据，单片机会跑飞
+	单片机原先接收数据方式，
+
+	修改
